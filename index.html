@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>My GradeBook</title>
+<title>My GradeBook & GPA Calculator</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
@@ -21,7 +21,6 @@
     display:flex;
     align-items:center;
     justify-content:space-between;
-    padding:0;
     margin-bottom:20px;
   }
 
@@ -335,11 +334,23 @@
     margin-bottom:20px;
   }
 
+  #gpa-courses-table th, #gpa-courses-table td {
+    padding:8px;
+    border-bottom:1px solid #eee;
+    font-size:0.9rem;
+  }
+
+  #gpa-courses-table {
+    width:100%;
+    border-collapse:collapse;
+    margin-bottom:20px;
+  }
+
 </style>
 </head>
 <body>
   <header>
-    <h1>My GradeBook</h1>
+    <h1>My GradeBook & GPA Calculator</h1>
     <nav class="nav">
       <a href="#" id="gradebook-nav" class="active">GradeBook</a>
       <a href="#" id="gpa-nav">GPA Calculator</a>
@@ -383,55 +394,33 @@
   <!-- GPA Calculator View -->
   <div id="gpa-view" class="hidden">
     <div class="block-section">
-      <h3>GPA Conversion</h3>
-      <label for="input-type">Input Type:</label>
-      <select id="input-type">
-        <option value="percentage">Percentage</option>
-        <option value="letter">Letter Grade</option>
-      </select>
-      
-      <div id="percentage-input-group">
-        <label for="percentage-input">Enter Percentage:</label>
-        <input type="number" id="percentage-input" placeholder="e.g. 87">
-      </div>
+      <h3>Multi-Course GPA Calculation</h3>
+      <p>Enter multiple courses, their grades, credit values, and calculate your cGPA on a chosen scale.</p>
 
-      <div id="letter-input-group" class="hidden">
-        <label for="letter-input">Enter Letter Grade:</label>
-        <select id="letter-input">
-          <option value="A+">A+</option>
-          <option value="A">A</option>
-          <option value="A-">A-</option>
-          <option value="B+">B+</option>
-          <option value="B">B</option>
-          <option value="B-">B-</option>
-          <option value="C+">C+</option>
-          <option value="C">C</option>
-          <option value="C-">C-</option>
-          <option value="D+">D+</option>
-          <option value="D">D</option>
-          <option value="D-">D-</option>
-          <option value="F">F</option>
-        </select>
-      </div>
+      <table id="gpa-courses-table">
+        <thead>
+          <tr>
+            <th>Input Type</th>
+            <th>Grade</th>
+            <th>Credits</th>
+            <th>Remove</th>
+          </tr>
+        </thead>
+        <tbody id="gpa-courses-body"></tbody>
+      </table>
 
-      <label for="convert-scale">Convert To Scale (4.0, 4.3, or 12):</label>
-      <select id="convert-scale">
-        <option value="all">Show All</option>
+      <button id="add-gpa-course-btn">Add GPA Course</button>
+
+      <hr>
+
+      <label for="final-scale">Convert cGPA to Scale:</label>
+      <select id="final-scale">
         <option value="4.0">4.0 Scale</option>
         <option value="4.3">4.3 Scale</option>
         <option value="12">12 Point Scale</option>
       </select>
-
-      <button id="gpa-convert-btn">Convert</button>
-      <div id="conversion-results" style="margin-top:10px;"></div>
-
-      <hr>
-
-      <div class="sub-section-title">Custom GPA Scale</div>
-      <label for="custom-scale">Enter Your Max GPA (e.g. 10.0):</label>
-      <input type="number" step="0.1" id="custom-scale" placeholder="e.g. 10.0">
-      <button id="custom-gpa-btn">Convert to Custom Scale</button>
-      <div id="custom-conversion-results" style="margin-top:10px;"></div>
+      <button id="calc-cgpa-btn">Calculate cGPA</button>
+      <div id="cgpa-result" style="margin-top:10px; font-size:0.9rem;"></div>
     </div>
   </div>
 
@@ -462,6 +451,9 @@
   <div class="fab" id="fab" title="Add Course">+</div>
 
 <script>
+// ---------------------------
+// GradeBook Logic
+// ---------------------------
 let courses = JSON.parse(localStorage.getItem('courses')) || [];
 let selectedCourseIndex = null;
 
@@ -492,44 +484,6 @@ const desiredGradeInput = document.getElementById('desired-grade');
 const calcFinalNeedsBtn = document.getElementById('calc-final-needs');
 const finalNeededResult = document.getElementById('final-needed-result');
 
-const inputTypeSelect = document.getElementById('input-type');
-const percentageInput = document.getElementById('percentage-input');
-const letterInput = document.getElementById('letter-input');
-const convertScaleSelect = document.getElementById('convert-scale');
-const gpaConvertBtn = document.getElementById('gpa-convert-btn');
-const conversionResults = document.getElementById('conversion-results');
-
-const percentageInputGroup = document.getElementById('percentage-input-group');
-const letterInputGroup = document.getElementById('letter-input-group');
-
-const customScaleInput = document.getElementById('custom-scale');
-const customGpaBtn = document.getElementById('custom-gpa-btn');
-const customConversionResults = document.getElementById('custom-conversion-results');
-
-const gradebookNav = document.getElementById('gradebook-nav');
-const gpaNav = document.getElementById('gpa-nav');
-const mainView = document.getElementById('main-view');
-const gpaView = document.getElementById('gpa-view');
-
-// Navigation
-gradebookNav.addEventListener('click', (e) => {
-  e.preventDefault();
-  gradebookNav.classList.add('active');
-  gpaNav.classList.remove('active');
-  mainView.classList.remove('hidden');
-  courseDetails.classList.add('hidden');
-  gpaView.classList.add('hidden');
-});
-
-gpaNav.addEventListener('click', (e) => {
-  e.preventDefault();
-  gpaNav.classList.add('active');
-  gradebookNav.classList.remove('active');
-  mainView.classList.add('hidden');
-  courseDetails.classList.add('hidden');
-  gpaView.classList.remove('hidden');
-});
-
 function saveCourses() {
   localStorage.setItem('courses', JSON.stringify(courses));
 }
@@ -548,10 +502,8 @@ function renderCourses() {
 function showCourseDetails(index) {
   selectedCourseIndex = index;
   const course = courses[index];
-  mainView.classList.add('hidden');
-  gpaView.classList.add('hidden');
-  gradebookNav.classList.add('active');
-  gpaNav.classList.remove('active');
+  document.getElementById('main-view').classList.add('hidden');
+  document.getElementById('gpa-view').classList.add('hidden');
   courseDetails.classList.remove('hidden');
   courseNameTitle.textContent = course.name;
   renderGradeComponents();
@@ -632,6 +584,102 @@ function calculateNeededFinalScore() {
   }
 }
 
+// ---------------------------
+// GPA Calculator Logic
+// ---------------------------
+let gpaCourses = JSON.parse(localStorage.getItem('gpaCourses')) || [];
+
+const gpaView = document.getElementById('gpa-view');
+const gpaCoursesBody = document.getElementById('gpa-courses-body');
+const addGpaCourseBtn = document.getElementById('add-gpa-course-btn');
+const calcCgpaBtn = document.getElementById('calc-cgpa-btn');
+const cgpaResult = document.getElementById('cgpa-result');
+const finalScaleSelect = document.getElementById('final-scale');
+
+const gradebookNav = document.getElementById('gradebook-nav');
+const gpaNav = document.getElementById('gpa-nav');
+const mainView = document.getElementById('main-view');
+
+// Navigation
+gradebookNav.addEventListener('click', (e) => {
+  e.preventDefault();
+  gradebookNav.classList.add('active');
+  gpaNav.classList.remove('active');
+  mainView.classList.remove('hidden');
+  courseDetails.classList.add('hidden');
+  gpaView.classList.add('hidden');
+});
+
+gpaNav.addEventListener('click', (e) => {
+  e.preventDefault();
+  gpaNav.classList.add('active');
+  gradebookNav.classList.remove('active');
+  mainView.classList.add('hidden');
+  courseDetails.classList.add('hidden');
+  gpaView.classList.remove('hidden');
+});
+
+function saveGpaCourses() {
+  localStorage.setItem('gpaCourses', JSON.stringify(gpaCourses));
+}
+
+function renderGpaCourses() {
+  gpaCoursesBody.innerHTML = gpaCourses.map((c, index) => {
+    return `<tr>
+      <td>
+        <select data-index="${index}" class="gpa-input-type">
+          <option value="percentage" ${c.type==='percentage'?'selected':''}>Percentage</option>
+          <option value="letter" ${c.type==='letter'?'selected':''}>Letter</option>
+          <option value="4.0" ${c.type==='4.0'?'selected':''}>4.0 Scale</option>
+          <option value="4.3" ${c.type==='4.3'?'selected':''}>4.3 Scale</option>
+          <option value="12" ${c.type==='12'?'selected':''}>12 Scale</option>
+        </select>
+      </td>
+      <td><input type="text" class="gpa-grade-input" data-index="${index}" value="${c.grade}"/></td>
+      <td><input type="number" step="0.1" class="gpa-credit-input" data-index="${index}" value="${c.credits}"/></td>
+      <td><button class="remove-gpa-course-btn" data-index="${index}">X</button></td>
+    </tr>`;
+  }).join('');
+
+  // Add event listeners after rendering
+  document.querySelectorAll('.gpa-input-type').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const i = e.target.getAttribute('data-index');
+      gpaCourses[i].type = e.target.value;
+      saveGpaCourses();
+    });
+  });
+  document.querySelectorAll('.gpa-grade-input').forEach(inp => {
+    inp.addEventListener('change', (e) => {
+      const i = e.target.getAttribute('data-index');
+      gpaCourses[i].grade = e.target.value;
+      saveGpaCourses();
+    });
+  });
+  document.querySelectorAll('.gpa-credit-input').forEach(inp => {
+    inp.addEventListener('change', (e) => {
+      const i = e.target.getAttribute('data-index');
+      gpaCourses[i].credits = parseFloat(e.target.value) || 0;
+      saveGpaCourses();
+    });
+  });
+  document.querySelectorAll('.remove-gpa-course-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const i = e.target.getAttribute('data-index');
+      gpaCourses.splice(i,1);
+      saveGpaCourses();
+      renderGpaCourses();
+    });
+  });
+}
+
+function addGpaCourseRow() {
+  gpaCourses.push({type:'percentage', grade:'', credits:0});
+  saveGpaCourses();
+  renderGpaCourses();
+}
+
+// Conversion Functions
 function percentageToLetter(percentage) {
   if (percentage >= 90) return 'A+';
   else if (percentage >= 85) return 'A';
@@ -648,7 +696,7 @@ function percentageToLetter(percentage) {
   return 'F';
 }
 
-function letterToFourPointScale(letter) {
+function letterTo4Point(letter) {
   switch (letter) {
     case 'A+': case 'A': return 4.0;
     case 'A-': return 3.7;
@@ -665,7 +713,7 @@ function letterToFourPointScale(letter) {
   }
 }
 
-function letterToFourPointThreeScale(letter) {
+function letterTo4Point3(letter) {
   switch (letter) {
     case 'A+': return 4.3;
     case 'A': return 4.0;
@@ -683,7 +731,7 @@ function letterToFourPointThreeScale(letter) {
   }
 }
 
-function letterToTwelveScale(letter) {
+function letterTo12(letter) {
   switch (letter) {
     case 'A+': return 12;
     case 'A': return 11;
@@ -701,75 +749,115 @@ function letterToTwelveScale(letter) {
   }
 }
 
-function getLetterFromInput() {
-  const inputType = inputTypeSelect.value;
-  if (inputType === 'percentage') {
-    const perc = parseFloat(percentageInput.value);
-    if (isNaN(perc)) {
-      return null;
-    }
+// For numeric inputs directly on scales, we assume user inputs correctly
+// We will convert all inputs to a chosen final scale.
+
+function getLetterFromAnyType(type, value) {
+  value = value.trim();
+  if (type === 'percentage') {
+    const perc = parseFloat(value);
+    if (isNaN(perc)) return null;
     return percentageToLetter(perc);
-  } else {
-    return letterInput.value;
+  } else if (type === 'letter') {
+    return value.toUpperCase();
+  } else if (type === '4.0') {
+    const val = parseFloat(value);
+    if (isNaN(val)) return null;
+    // Convert from 4.0 scale to letter by finding closest letter
+    // We'll do a rough inverse: We'll guess letter from 4.0 scale:
+    // We'll map it to letter by checking ranges:
+    // A+ or A is always 4.0 on 4.0 scale
+    // If val=4.0 -> 'A'
+    // if val around 3.7 => 'A-'
+    // This is approximate. We'll pick closest letter by difference:
+    const letters = ['A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','F'];
+    const get4 = l=> letterTo4Point(l);
+    let closest = 'F';
+    let bestDiff = Infinity;
+    for (let l of letters) {
+      let diff = Math.abs(get4(l)-val);
+      if (diff < bestDiff) {
+        bestDiff = diff;
+        closest = l;
+      }
+    }
+    return closest;
+  } else if (type === '4.3') {
+    const val = parseFloat(value);
+    if (isNaN(val)) return null;
+    // Similar approach for 4.3 scale:
+    const letters = ['A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','F'];
+    const get43 = l=> letterTo4Point3(l);
+    let closest = 'F';
+    let bestDiff = Infinity;
+    for (let l of letters) {
+      let diff = Math.abs(get43(l)-val);
+      if (diff < bestDiff) {
+        bestDiff = diff;
+        closest = l;
+      }
+    }
+    return closest;
+  } else if (type === '12') {
+    const val = parseFloat(value);
+    if (isNaN(val)) return null;
+    const letters = ['A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','F'];
+    const get12p = l=> letterTo12(l);
+    let closest = 'F';
+    let bestDiff = Infinity;
+    for (let l of letters) {
+      let diff = Math.abs(get12p(l)-val);
+      if (diff < bestDiff) {
+        bestDiff = diff;
+        closest = l;
+      }
+    }
+    return closest;
   }
+  return null;
 }
 
-function convertGrade() {
-  const letter = getLetterFromInput();
-  if (!letter) {
-    conversionResults.textContent = "Please enter a valid input.";
+function convertLetterToScale(letter, scale) {
+  if (scale === '4.0') return letterTo4Point(letter);
+  if (scale === '4.3') return letterTo4Point3(letter);
+  if (scale === '12') return letterTo12(letter);
+  return 0;
+}
+
+function calculateCGPA() {
+  let totalCredits = 0;
+  let totalPoints = 0;
+  const scale = finalScaleSelect.value;
+
+  for (let c of gpaCourses) {
+    const letter = getLetterFromAnyType(c.type, c.grade);
+    if (!letter) {
+      cgpaResult.textContent = "Invalid input in one of the courses.";
+      return;
+    }
+    const val = convertLetterToScale(letter, scale);
+    totalPoints += val * c.credits;
+    totalCredits += c.credits;
+  }
+
+  if (totalCredits === 0) {
+    cgpaResult.textContent = "No credits entered or all credits are zero.";
     return;
   }
 
-  const scale = convertScaleSelect.value;
-
-  const fourPoint = letterToFourPointScale(letter);
-  const fourPointThree = letterToFourPointThreeScale(letter);
-  const twelve = letterToTwelveScale(letter);
-
-  let resultHTML = '';
-  if (scale === 'all') {
-    resultHTML = `
-      <p>Letter Grade: ${letter}</p>
-      <p>4.0 Scale: ${fourPoint}</p>
-      <p>4.3 Scale: ${fourPointThree}</p>
-      <p>12 Point Scale: ${twelve}</p>
-    `;
-  } else if (scale === '4.0') {
-    resultHTML = `<p>${letter} on 4.0 Scale: ${fourPoint}</p>`;
-  } else if (scale === '4.3') {
-    resultHTML = `<p>${letter} on 4.3 Scale: ${fourPointThree}</p>`;
-  } else if (scale === '12') {
-    resultHTML = `<p>${letter} on 12 Point Scale: ${twelve}</p>`;
-  }
-
-  conversionResults.innerHTML = resultHTML;
+  const cGPA = totalPoints / totalCredits;
+  cgpaResult.textContent = `Your cGPA on the ${scale} scale is: ${cGPA.toFixed(2)}`;
 }
 
-function convertToCustomScale() {
-  const letter = getLetterFromInput();
-  if (!letter) {
-    customConversionResults.textContent = "Please enter a valid input for custom scale conversion.";
-    return;
-  }
+// Event Listeners for GPA
+addGpaCourseBtn.addEventListener('click', addGpaCourseRow);
+calcCgpaBtn.addEventListener('click', calculateCGPA);
 
-  const maxGPA = parseFloat(customScaleInput.value);
-  if (isNaN(maxGPA) || maxGPA <= 0) {
-    customConversionResults.textContent = "Please enter a valid positive maximum GPA value.";
-    return;
-  }
-
-  const val4_3 = letterToFourPointThreeScale(letter);
-  const customValue = (val4_3 / 4.3) * maxGPA;
-  
-  customConversionResults.innerHTML = `<p>${letter} on your custom ${maxGPA} scale: ${customValue.toFixed(2)}</p>`;
-}
-
-// Event Listeners
+// Event Listeners GradeBook
 addCourseCard.addEventListener('click', openAddCourseModal);
 fab.addEventListener('click', openAddCourseModal);
 
-document.getElementById('close-course-modal').addEventListener('click', closeAddCourseModal);
+closeCourseModalBtn.addEventListener('click', closeAddCourseModal);
 
 saveCourseBtn.addEventListener('click', () => {
   const name = newCourseName.value.trim();
@@ -789,7 +877,7 @@ backBtn.addEventListener('click', (e) => {
 });
 
 addComponentBtn.addEventListener('click', openAddComponentModal);
-document.getElementById('close-component-modal').addEventListener('click', closeAddComponentModal);
+closeComponentModalBtn.addEventListener('click', closeAddComponentModal);
 
 saveComponentBtn.addEventListener('click', () => {
   const compName = componentNameInput.value.trim();
@@ -809,23 +897,11 @@ saveComponentBtn.addEventListener('click', () => {
 });
 
 calcFinalNeedsBtn.addEventListener('click', calculateNeededFinalScore);
-gpaConvertBtn.addEventListener('click', convertGrade);
-customGpaBtn.addEventListener('click', convertToCustomScale);
-
-inputTypeSelect.addEventListener('change', () => {
-  if (inputTypeSelect.value === 'percentage') {
-    percentageInputGroup.classList.remove('hidden');
-    letterInputGroup.classList.add('hidden');
-    percentageInput.focus();
-  } else {
-    percentageInputGroup.classList.add('hidden');
-    letterInputGroup.classList.remove('hidden');
-    letterInput.focus();
-  }
-});
 
 // Initial Render
 renderCourses();
+renderGpaCourses();
+
 </script>
 </body>
 </html>
