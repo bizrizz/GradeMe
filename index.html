@@ -215,7 +215,6 @@
     font-size:0.9rem;
   }
 
-  /* Modal styling */
   .modal {
     position: fixed;
     top: 0;
@@ -282,7 +281,6 @@
     margin-right:10px;
   }
 
-  /* Floating Action Button */
   .fab {
     position: fixed;
     bottom:30px;
@@ -325,19 +323,12 @@
     color:#333;
   }
 
-  /* GPA Calculator View */
   #gpa-view .block-section {
     background:#fff;
     border-radius:20px;
     box-shadow:0 4px 10px rgba(0,0,0,0.1);
     padding:20px;
     margin-bottom:20px;
-  }
-
-  #gpa-courses-table th, #gpa-courses-table td {
-    padding:8px;
-    border-bottom:1px solid #eee;
-    font-size:0.9rem;
   }
 
   #gpa-courses-table {
@@ -395,11 +386,12 @@
   <div id="gpa-view" class="hidden">
     <div class="block-section">
       <h3>Multi-Course GPA Calculation</h3>
-      <p>Enter multiple courses, their grades, credit values, and calculate your cGPA on a chosen scale.</p>
+      <p>Select a university to auto-fill scale and credits. Then enter the grade. You can adjust values if needed.</p>
 
       <table id="gpa-courses-table">
         <thead>
           <tr>
+            <th>University</th>
             <th>Input Type</th>
             <th>Grade</th>
             <th>Credits</th>
@@ -418,6 +410,7 @@
         <option value="4.0">4.0 Scale</option>
         <option value="4.3">4.3 Scale</option>
         <option value="12">12 Point Scale</option>
+        <option value="percentage">Percentage</option>
       </select>
       <button id="calc-cgpa-btn">Calculate cGPA</button>
       <div id="cgpa-result" style="margin-top:10px; font-size:0.9rem;"></div>
@@ -451,6 +444,41 @@
   <div class="fab" id="fab" title="Add Course">+</div>
 
 <script>
+// University Data
+const universities = [
+  {province:"Ontario", university:"University of Toronto", scale:"4.0", credits:0.5},
+  {province:"Ontario", university:"University of Ottawa", scale:"10-point", credits:3},
+  {province:"Ontario", university:"Western University", scale:"4.0", credits:0.5},
+  {province:"Ontario", university:"Queen's University", scale:"4.3", credits:3.0},
+  {province:"Ontario", university:"University of Waterloo", scale:"4.0", credits:0.5},
+  {province:"Ontario", university:"York University", scale:"9-point", credits:3.0},
+  {province:"Ontario", university:"McMaster University", scale:"12", credits:3.0},
+  {province:"Ontario", university:"Carleton University", scale:"12", credits:0.5},
+  {province:"Ontario", university:"Ryerson University", scale:"4.33", credits:1.0},
+  {province:"Ontario", university:"University of Guelph", scale:"4.0", credits:0.5},
+  {province:"British Columbia", university:"University of British Columbia", scale:"4.33", credits:3},
+  {province:"British Columbia", university:"Simon Fraser University", scale:"4.33", credits:3},
+  {province:"British Columbia", university:"University of Victoria", scale:"9-point", credits:1.5},
+  {province:"Alberta", university:"University of Alberta", scale:"4.0", credits:3},
+  {province:"Alberta", university:"University of Calgary", scale:"4.0", credits:3},
+  {province:"Alberta", university:"University of Lethbridge", scale:"4.0", credits:3.0},
+  {province:"Quebec", university:"McGill University", scale:"4.0", credits:3},
+  {province:"Quebec", university:"Université de Montréal", scale:"4.3", credits:3},
+  {province:"Quebec", university:"Concordia University", scale:"4.3", credits:3},
+  {province:"Quebec", university:"Université Laval", scale:"4.33", credits:3},
+  {province:"Quebec", university:"Université de Sherbrooke", scale:"4.3", credits:3},
+  {province:"Manitoba", university:"University of Manitoba", scale:"4.5", credits:3},
+  {province:"Manitoba", university:"University of Winnipeg", scale:"4.5", credits:3},
+  {province:"Saskatchewan", university:"University of Saskatchewan", scale:"percentage", credits:3},
+  {province:"Saskatchewan", university:"University of Regina", scale:"percentage", credits:3},
+  {province:"Nova Scotia", university:"Dalhousie University", scale:"4.3", credits:3},
+  {province:"Nova Scotia", university:"Saint Mary's University", scale:"4.3", credits:3},
+  {province:"Newfoundland and Labrador", university:"Memorial University", scale:"percentage", credits:3},
+  {province:"New Brunswick", university:"University of New Brunswick", scale:"4.3", credits:3},
+  {province:"New Brunswick", university:"St. Thomas University", scale:"4.3", credits:3},
+  {province:"Prince Edward Island", university:"University of Prince Edward Island", scale:"4.3", credits:3},
+];
+
 // ---------------------------
 // GradeBook Logic
 // ---------------------------
@@ -627,12 +655,22 @@ function renderGpaCourses() {
   gpaCoursesBody.innerHTML = gpaCourses.map((c, index) => {
     return `<tr>
       <td>
+        <select data-index="${index}" class="gpa-university-select">
+          <option value="">--Select--</option>
+          ${universities.map(u=>`<option value="${u.university}" ${c.university===u.university?'selected':''}>${u.university} (${u.province})</option>`).join('')}
+        </select>
+      </td>
+      <td>
         <select data-index="${index}" class="gpa-input-type">
-          <option value="percentage" ${c.type==='percentage'?'selected':''}>Percentage</option>
-          <option value="letter" ${c.type==='letter'?'selected':''}>Letter</option>
-          <option value="4.0" ${c.type==='4.0'?'selected':''}>4.0 Scale</option>
-          <option value="4.3" ${c.type==='4.3'?'selected':''}>4.3 Scale</option>
-          <option value="12" ${c.type==='12'?'selected':''}>12 Scale</option>
+          <option value="percentage" ${c.type==='percentage'?'selected':''}>percentage</option>
+          <option value="letter" ${c.type==='letter'?'selected':''}>letter</option>
+          <option value="4.0" ${c.type==='4.0'?'selected':''}>4.0</option>
+          <option value="4.3" ${c.type==='4.3'?'selected':''}>4.3</option>
+          <option value="4.33" ${c.type==='4.33'?'selected':''}>4.33</option>
+          <option value="4.5" ${c.type==='4.5'?'selected':''}>4.5</option>
+          <option value="9-point" ${c.type==='9-point'?'selected':''}>9-point</option>
+          <option value="10-point" ${c.type==='10-point'?'selected':''}>10-point</option>
+          <option value="12" ${c.type==='12'?'selected':''}>12</option>
         </select>
       </td>
       <td><input type="text" class="gpa-grade-input" data-index="${index}" value="${c.grade}"/></td>
@@ -642,6 +680,25 @@ function renderGpaCourses() {
   }).join('');
 
   // Add event listeners after rendering
+  document.querySelectorAll('.gpa-university-select').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const i = e.target.getAttribute('data-index');
+      const uniName = e.target.value;
+      gpaCourses[i].university = uniName;
+      const uniData = universities.find(u=>u.university===uniName);
+      if (uniData) {
+        // Set scale and credits automatically
+        gpaCourses[i].type = uniData.scale;
+        gpaCourses[i].credits = uniData.credits;
+        // Update after changes
+        saveGpaCourses();
+        renderGpaCourses();
+      } else {
+        saveGpaCourses();
+      }
+    });
+  });
+
   document.querySelectorAll('.gpa-input-type').forEach(sel => {
     sel.addEventListener('change', (e) => {
       const i = e.target.getAttribute('data-index');
@@ -674,12 +731,11 @@ function renderGpaCourses() {
 }
 
 function addGpaCourseRow() {
-  gpaCourses.push({type:'percentage', grade:'', credits:0});
+  gpaCourses.push({university:"", type:'percentage', grade:'', credits:0});
   saveGpaCourses();
   renderGpaCourses();
 }
 
-// Conversion Functions
 function percentageToLetter(percentage) {
   if (percentage >= 90) return 'A+';
   else if (percentage >= 85) return 'A';
@@ -731,6 +787,34 @@ function letterTo4Point3(letter) {
   }
 }
 
+function letterTo4Point33(letter) {
+  // 4.33 scale similar to 4.3 scale, treat similarly or just approx same as 4.3 scale
+  // We'll just treat 4.33 similar to 4.3 scale for matching.
+  // Or find closest approach:
+  const letters = ['A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','F'];
+  const getVal = l=> letterTo4Point3(l)*4.33/4.3; 
+  // Actually, just approximate the same as 4.3 scale because we don't have exact mapping.
+  return letterTo4Point3(letter)*(4.33/4.3);
+}
+
+function letterTo4_5(letter) {
+  // Try scaling from 4.0 scale to 4.5
+  let val4 = letterTo4Point(letter);
+  return val4 * (4.5/4.0);
+}
+
+function letterTo9(letter) {
+  // We'll map letters to 4.0 scale then scale up to 9
+  let val4 = letterTo4Point(letter);
+  return val4 * (9/4.0);
+}
+
+function letterTo10(letter) {
+  // Similarly scale from 4.0 to 10:
+  let val4 = letterTo4Point(letter);
+  return val4 * (10/4.0);
+}
+
 function letterTo12(letter) {
   switch (letter) {
     case 'A+': return 12;
@@ -749,9 +833,41 @@ function letterTo12(letter) {
   }
 }
 
-// For numeric inputs directly on scales, we assume user inputs correctly
-// We will convert all inputs to a chosen final scale.
+function letterFromScaleValue(scale, val) {
+  // Given a scale and a value, find closest letter
+  const letters = ['A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','F'];
 
+  function toVal(l) {
+    if (scale==='4.0') return letterTo4Point(l);
+    if (scale==='4.3') return letterTo4Point3(l);
+    if (scale==='4.33') {
+      // treat as 4.3 for approximation
+      return letterTo4Point3(l)*(4.33/4.3);
+    }
+    if (scale==='4.5') return letterTo4_5(l);
+    if (scale==='9-point') return letterTo9(l);
+    if (scale==='10-point') return letterTo10(l);
+    if (scale==='12') return letterTo12(l);
+    if (scale==='percentage') {
+      // map letter to midpoint percentage:
+      return letterToMedianPerc(l);
+    }
+    return letterTo4Point(l);
+  }
+
+  let bestDiff = Infinity;
+  let closest = 'F';
+  for (let L of letters) {
+    let diff = Math.abs(toVal(L)-val);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      closest = L;
+    }
+  }
+  return closest;
+}
+
+// Convert any input type to letter
 function getLetterFromAnyType(type, value) {
   value = value.trim();
   if (type === 'percentage') {
@@ -760,59 +876,10 @@ function getLetterFromAnyType(type, value) {
     return percentageToLetter(perc);
   } else if (type === 'letter') {
     return value.toUpperCase();
-  } else if (type === '4.0') {
+  } else if (type === '4.0' || type==='4.3' || type==='4.33' || type==='4.5' || type==='9-point' || type==='10-point' || type==='12') {
     const val = parseFloat(value);
     if (isNaN(val)) return null;
-    // Convert from 4.0 scale to letter by finding closest letter
-    // We'll do a rough inverse: We'll guess letter from 4.0 scale:
-    // We'll map it to letter by checking ranges:
-    // A+ or A is always 4.0 on 4.0 scale
-    // If val=4.0 -> 'A'
-    // if val around 3.7 => 'A-'
-    // This is approximate. We'll pick closest letter by difference:
-    const letters = ['A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','F'];
-    const get4 = l=> letterTo4Point(l);
-    let closest = 'F';
-    let bestDiff = Infinity;
-    for (let l of letters) {
-      let diff = Math.abs(get4(l)-val);
-      if (diff < bestDiff) {
-        bestDiff = diff;
-        closest = l;
-      }
-    }
-    return closest;
-  } else if (type === '4.3') {
-    const val = parseFloat(value);
-    if (isNaN(val)) return null;
-    // Similar approach for 4.3 scale:
-    const letters = ['A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','F'];
-    const get43 = l=> letterTo4Point3(l);
-    let closest = 'F';
-    let bestDiff = Infinity;
-    for (let l of letters) {
-      let diff = Math.abs(get43(l)-val);
-      if (diff < bestDiff) {
-        bestDiff = diff;
-        closest = l;
-      }
-    }
-    return closest;
-  } else if (type === '12') {
-    const val = parseFloat(value);
-    if (isNaN(val)) return null;
-    const letters = ['A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','F'];
-    const get12p = l=> letterTo12(l);
-    let closest = 'F';
-    let bestDiff = Infinity;
-    for (let l of letters) {
-      let diff = Math.abs(get12p(l)-val);
-      if (diff < bestDiff) {
-        bestDiff = diff;
-        closest = l;
-      }
-    }
-    return closest;
+    return letterFromScaleValue(type, val);
   }
   return null;
 }
@@ -820,8 +887,27 @@ function getLetterFromAnyType(type, value) {
 function convertLetterToScale(letter, scale) {
   if (scale === '4.0') return letterTo4Point(letter);
   if (scale === '4.3') return letterTo4Point3(letter);
+  if (scale === '4.33') return letterTo4Point3(letter)*(4.33/4.3);
+  if (scale === '4.5') return letterTo4_5(letter);
+  if (scale === '9-point') return letterTo9(letter);
+  if (scale === '10-point') return letterTo10(letter);
   if (scale === '12') return letterTo12(letter);
+  if (scale === 'percentage') {
+    return letterToMedianPerc(letter);
+  }
   return 0;
+}
+
+// Approximate median percentage for each letter
+function letterToMedianPerc(letter) {
+  const map = {
+    'A+':95,'A':87.5,'A-':82.5,
+    'B+':78,'B':76,'B-':72,
+    'C+':65,'C':62,'C-':58,
+    'D+':55,'D':52,'D-':50,
+    'F':45
+  };
+  return map[letter]||50;
 }
 
 function calculateCGPA() {
@@ -836,8 +922,8 @@ function calculateCGPA() {
       return;
     }
     const val = convertLetterToScale(letter, scale);
-    totalPoints += val * c.credits;
-    totalCredits += c.credits;
+    totalPoints += val * (c.credits || 0);
+    totalCredits += (c.credits||0);
   }
 
   if (totalCredits === 0) {
@@ -845,8 +931,17 @@ function calculateCGPA() {
     return;
   }
 
-  const cGPA = totalPoints / totalCredits;
-  cgpaResult.textContent = `Your cGPA on the ${scale} scale is: ${cGPA.toFixed(2)}`;
+  let cGPA = totalPoints / totalCredits;
+  // Show cGPA on chosen scale, and also show on 4.0 and percentage.
+  // We have cGPA on chosen scale.
+  // Find letter from chosen scale cGPA:
+  const letter = letterFromScaleValue(scale, cGPA);
+  const cGPAon4 = convertLetterToScale(letter,'4.0');
+  const cGPAperc = letterToMedianPerc(letter);
+
+  cgpaResult.innerHTML = `Your cGPA on the ${scale} scale: ${cGPA.toFixed(2)}<br/>
+  Equivalent on 4.0 scale: ${cGPAon4.toFixed(2)}<br/>
+  Approximate percentage: ${cGPAperc}%`;
 }
 
 // Event Listeners for GPA
@@ -901,7 +996,6 @@ calcFinalNeedsBtn.addEventListener('click', calculateNeededFinalScore);
 // Initial Render
 renderCourses();
 renderGpaCourses();
-
 </script>
 </body>
 </html>
