@@ -20,22 +20,51 @@
   header {
     display:flex;
     align-items:center;
-    justify-content:center;
-    padding:20px 0;
+    justify-content:space-between;
+    padding:0;
     margin-bottom:20px;
   }
 
-  header h1 {
+  .nav {
+    display:flex;
+    gap:20px;
+  }
+
+  .nav a {
+    text-decoration:none;
+    color:#333;
+    font-weight:500;
+    font-size:1rem;
+    padding:10px 15px;
+    border-radius:10px;
+    transition:background 0.2s, transform 0.2s;
+  }
+
+  .nav a:hover {
+    background:#dce3ea;
+    transform:translateY(-2px);
+  }
+
+  .nav a.active {
+    background:#6495ED;
+    color:#fff;
+  }
+
+  h1 {
     font-weight:700;
     font-size:2rem;
     color:#333;
     margin:0;
   }
 
-  #main-view {
+  #main-view, #gpa-view {
     max-width: 1200px;
     margin: 0 auto;
     position: relative;
+  }
+
+  .hidden {
+    display:none;
   }
 
   .course-container {
@@ -182,13 +211,9 @@
     outline:none;
   }
 
-  #conversion-results p {
+  #conversion-results p, #custom-conversion-results p {
     margin:5px 0;
     font-size:0.9rem;
-  }
-
-  .hidden {
-    display:none;
   }
 
   /* Modal styling */
@@ -300,17 +325,30 @@
     margin-bottom:10px;
     color:#333;
   }
+
+  /* GPA Calculator View */
+  #gpa-view .block-section {
+    background:#fff;
+    border-radius:20px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.1);
+    padding:20px;
+    margin-bottom:20px;
+  }
+
 </style>
 </head>
 <body>
   <header>
     <h1>My GradeBook</h1>
+    <nav class="nav">
+      <a href="#" id="gradebook-nav" class="active">GradeBook</a>
+      <a href="#" id="gpa-nav">GPA Calculator</a>
+    </nav>
   </header>
 
+  <!-- GradeBook View -->
   <div id="main-view">
-    <div class="course-container" id="course-container">
-      <!-- Courses will be rendered here -->
-    </div>
+    <div class="course-container" id="course-container"></div>
     <div class="course-container">
       <div class="course-card card add-course-card" id="add-course-card">
         <h2>Add New Course</h2>
@@ -340,9 +378,12 @@
       <button id="calc-final-needs">Calculate Needed Final</button>
       <div id="final-needed-result" style="margin-top:10px; font-size:0.9rem;"></div>
     </div>
+  </div>
 
-    <div class="block-section card">
-      <h3>GPA Converter</h3>
+  <!-- GPA Calculator View -->
+  <div id="gpa-view" class="hidden">
+    <div class="block-section">
+      <h3>GPA Conversion</h3>
       <label for="input-type">Input Type:</label>
       <select id="input-type">
         <option value="percentage">Percentage</option>
@@ -373,12 +414,12 @@
         </select>
       </div>
 
-      <label for="convert-scale">Convert To Scale (Popular Canadian Scales):</label>
+      <label for="convert-scale">Convert To Scale (4.0, 4.3, or 12):</label>
       <select id="convert-scale">
         <option value="all">Show All</option>
-        <option value="4.0">4.0 Scale (UofT/McGill)</option>
-        <option value="4.3">4.3 Scale (Queen's/UBC)</option>
-        <option value="12">12 Point Scale (McMaster)</option>
+        <option value="4.0">4.0 Scale</option>
+        <option value="4.3">4.3 Scale</option>
+        <option value="12">12 Point Scale</option>
       </select>
 
       <button id="gpa-convert-btn">Convert</button>
@@ -465,6 +506,30 @@ const customScaleInput = document.getElementById('custom-scale');
 const customGpaBtn = document.getElementById('custom-gpa-btn');
 const customConversionResults = document.getElementById('custom-conversion-results');
 
+const gradebookNav = document.getElementById('gradebook-nav');
+const gpaNav = document.getElementById('gpa-nav');
+const mainView = document.getElementById('main-view');
+const gpaView = document.getElementById('gpa-view');
+
+// Navigation
+gradebookNav.addEventListener('click', (e) => {
+  e.preventDefault();
+  gradebookNav.classList.add('active');
+  gpaNav.classList.remove('active');
+  mainView.classList.remove('hidden');
+  courseDetails.classList.add('hidden');
+  gpaView.classList.add('hidden');
+});
+
+gpaNav.addEventListener('click', (e) => {
+  e.preventDefault();
+  gpaNav.classList.add('active');
+  gradebookNav.classList.remove('active');
+  mainView.classList.add('hidden');
+  courseDetails.classList.add('hidden');
+  gpaView.classList.remove('hidden');
+});
+
 function saveCourses() {
   localStorage.setItem('courses', JSON.stringify(courses));
 }
@@ -483,7 +548,10 @@ function renderCourses() {
 function showCourseDetails(index) {
   selectedCourseIndex = index;
   const course = courses[index];
-  document.getElementById('main-view').classList.add('hidden');
+  mainView.classList.add('hidden');
+  gpaView.classList.add('hidden');
+  gradebookNav.classList.add('active');
+  gpaNav.classList.remove('active');
   courseDetails.classList.remove('hidden');
   courseNameTitle.textContent = course.name;
   renderGradeComponents();
@@ -581,7 +649,6 @@ function percentageToLetter(percentage) {
 }
 
 function letterToFourPointScale(letter) {
-  // Common 4.0 scale
   switch (letter) {
     case 'A+': case 'A': return 4.0;
     case 'A-': return 3.7;
@@ -599,7 +666,6 @@ function letterToFourPointScale(letter) {
 }
 
 function letterToFourPointThreeScale(letter) {
-  // 4.3 scale (like Queen's, UBC)
   switch (letter) {
     case 'A+': return 4.3;
     case 'A': return 4.0;
@@ -618,7 +684,6 @@ function letterToFourPointThreeScale(letter) {
 }
 
 function letterToTwelveScale(letter) {
-  // Approximate 12-point scale (McMaster)
   switch (letter) {
     case 'A+': return 12;
     case 'A': return 11;
@@ -636,21 +701,27 @@ function letterToTwelveScale(letter) {
   }
 }
 
-function convertGrade() {
+function getLetterFromInput() {
   const inputType = inputTypeSelect.value;
-  const scale = convertScaleSelect.value;
-  let letter;
-
   if (inputType === 'percentage') {
     const perc = parseFloat(percentageInput.value);
     if (isNaN(perc)) {
-      conversionResults.textContent = "Please enter a valid percentage.";
-      return;
+      return null;
     }
-    letter = percentageToLetter(perc);
+    return percentageToLetter(perc);
   } else {
-    letter = letterInput.value;
+    return letterInput.value;
   }
+}
+
+function convertGrade() {
+  const letter = getLetterFromInput();
+  if (!letter) {
+    conversionResults.textContent = "Please enter a valid input.";
+    return;
+  }
+
+  const scale = convertScaleSelect.value;
 
   const fourPoint = letterToFourPointScale(letter);
   const fourPointThree = letterToFourPointThreeScale(letter);
@@ -660,34 +731,26 @@ function convertGrade() {
   if (scale === 'all') {
     resultHTML = `
       <p>Letter Grade: ${letter}</p>
-      <p>4.0 Scale (UofT/McGill): ${fourPoint}</p>
-      <p>4.3 Scale (Queen's/UBC): ${fourPointThree}</p>
-      <p>12 Point Scale (McMaster): ${twelve}</p>
+      <p>4.0 Scale: ${fourPoint}</p>
+      <p>4.3 Scale: ${fourPointThree}</p>
+      <p>12 Point Scale: ${twelve}</p>
     `;
   } else if (scale === '4.0') {
-    resultHTML = `<p>${letter} on a 4.0 Scale: ${fourPoint}</p>`;
+    resultHTML = `<p>${letter} on 4.0 Scale: ${fourPoint}</p>`;
   } else if (scale === '4.3') {
-    resultHTML = `<p>${letter} on a 4.3 Scale: ${fourPointThree}</p>`;
+    resultHTML = `<p>${letter} on 4.3 Scale: ${fourPointThree}</p>`;
   } else if (scale === '12') {
-    resultHTML = `<p>${letter} on a 12 Point Scale: ${twelve}</p>`;
+    resultHTML = `<p>${letter} on 12 Point Scale: ${twelve}</p>`;
   }
 
   conversionResults.innerHTML = resultHTML;
 }
 
 function convertToCustomScale() {
-  const inputType = inputTypeSelect.value;
-  let letter;
-
-  if (inputType === 'percentage') {
-    const perc = parseFloat(percentageInput.value);
-    if (isNaN(perc)) {
-      customConversionResults.textContent = "Please enter a valid percentage for custom scale conversion.";
-      return;
-    }
-    letter = percentageToLetter(perc);
-  } else {
-    letter = letterInput.value;
+  const letter = getLetterFromInput();
+  if (!letter) {
+    customConversionResults.textContent = "Please enter a valid input for custom scale conversion.";
+    return;
   }
 
   const maxGPA = parseFloat(customScaleInput.value);
@@ -696,11 +759,7 @@ function convertToCustomScale() {
     return;
   }
 
-  // Convert letter to a normalized value 0 to 4.3 (since 4.3 is a high standard)
-  // then scale it to the custom maxGPA.
   const val4_3 = letterToFourPointThreeScale(letter);
-  // Normalize: max on 4.3 scale is A+ = 4.3, we map that proportionally to custom max
-  // ratio = val4_3 / 4.3 * maxGPA
   const customValue = (val4_3 / 4.3) * maxGPA;
   
   customConversionResults.innerHTML = `<p>${letter} on your custom ${maxGPA} scale: ${customValue.toFixed(2)}</p>`;
@@ -725,7 +784,7 @@ saveCourseBtn.addEventListener('click', () => {
 backBtn.addEventListener('click', (e) => {
   e.preventDefault();
   courseDetails.classList.add('hidden');
-  document.getElementById('main-view').classList.remove('hidden');
+  mainView.classList.remove('hidden');
   renderCourses();
 });
 
