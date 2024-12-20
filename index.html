@@ -332,12 +332,6 @@
     margin-bottom:20px;
   }
 
-  #uni-note {
-    font-size:0.8rem;
-    color:#555;
-    margin-bottom:10px;
-  }
-
 </style>
 </head>
 <body>
@@ -387,16 +381,12 @@
   <div id="gpa-view" class="hidden">
     <div class="block-section">
       <h3>Multi-Course GPA Calculation</h3>
-      <p>Select your university once. All newly added or duplicated courses will use that university's scale and chosen credits.</p>
+      <p>Select your university once. All newly added or duplicated courses will use that university's scale and credits by default.</p>
 
       <label for="uni-select">Select University:</label>
       <select id="uni-select">
         <option value="">--Select University--</option>
       </select>
-      <div id="uni-note" class="hidden"></div>
-
-      <label for="credit-select">Select Credits per Course:</label>
-      <select id="credit-select"></select>
 
       <table id="gpa-courses-table">
         <thead>
@@ -453,61 +443,47 @@
   <div class="fab" id="fab" title="Add Course">+</div>
 
 <script>
-// Strictly following the table provided:
-
-const universityData = [
-  {province:"Ontario",university:"University of Toronto",scale:"4.0",credits:["0.5","1.0"],note:"Full course load per semester is usually 2.5 credits."},
-  {province:"Ontario",university:"University of Ottawa",scale:"10-point",credits:["3"],note:"Full-time course load is usually 15 units per semester."},
-  {province:"Ontario",university:"Western University",scale:"4.0",credits:["0.5","1.0"],note:"Standard full-time load is 5.0 credits per academic year."},
-  {province:"Ontario",university:"Queen's University",scale:"4.3",credits:["3.0"],note:"A 4.3 GPA corresponds to 12.9 credits."},
-  {province:"Ontario",university:"University of Waterloo",scale:"4.0",credits:["0.5"],note:"Typical full-time load is 2.5 units per term."},
-  {province:"Ontario",university:"York University",scale:"9-point",credits:["3.0"],note:"Uses a 9-point GPA scale."},
-  {province:"Ontario",university:"McMaster University",scale:"12-point",credits:["3.0"],note:"Employs a 12-point GPA scale."},
-  {province:"Ontario",university:"Carleton University",scale:"12-point",credits:["0.5","1.0"],note:"Uses a 12-point GPA scale."},
-  {province:"Ontario",university:"Ryerson University",scale:"4.33",credits:["1.0"],note:"Uses a 4.33 GPA scale."},
-  {province:"Ontario",university:"University of Guelph",scale:"4.0",credits:["0.5"],note:"Most courses carry 0.5 credits."},
-
-  {province:"British Columbia",university:"University of British Columbia",scale:"4.33",credits:["3"],note:"Standard full-time course load is 15 credits per semester."},
-  {province:"British Columbia",university:"Simon Fraser University",scale:"4.33",credits:["3"],note:"Uses a 4.33-point grading scale."},
-  {province:"British Columbia",university:"University of Victoria",scale:"9-point",credits:["1.5","3.0"],note:"Uses a 9-point grading scale alongside a percentage-based system."},
-
-  {province:"Alberta",university:"University of Alberta",scale:"4.0",credits:["3"],note:"Full course load per term is generally 15 units."},
-  {province:"Alberta",university:"University of Calgary",scale:"4.0",credits:["3"],note:"Full-time course load is generally 15 units per term."},
-  {province:"Alberta",university:"University of Lethbridge",scale:"4.0",credits:["3.0"],note:"Uses a 4.0 GPA scale."},
-
-  {province:"Quebec",university:"McGill University",scale:"4.0",credits:["3"],note:"One credit equals approx 45 hours of work."},
-  {province:"Quebec",university:"Université de Montréal",scale:"4.3",credits:["3"],note:"Uses a 4.3 GPA scale."},
-  {province:"Quebec",university:"Concordia University",scale:"4.3",credits:["3"],note:"Uses a 4.3 GPA scale."},
-  {province:"Quebec",university:"Université Laval",scale:"4.33",credits:["3"],note:"Uses a 4.33 GPA scale."},
-  {province:"Quebec",university:"Université de Sherbrooke",scale:"4.3",credits:["3"],note:"Uses a 4.3 GPA scale."},
-
-  {province:"Manitoba",university:"University of Manitoba",scale:"4.5",credits:["3"],note:"Uses a 4.5 GPA scale."},
-  {province:"Manitoba",university:"University of Winnipeg",scale:"4.5",credits:["3"],note:"Uses a 4.5 GPA scale."},
-
-  {province:"Saskatchewan",university:"University of Saskatchewan",scale:"percentage",credits:["3"],note:"Uses a percentage grade system."},
-  {province:"Saskatchewan",university:"University of Regina",scale:"percentage",credits:["3"],note:"Uses a percentage grade system."},
-
-  {province:"Nova Scotia",university:"Dalhousie University",scale:"4.3",credits:["3"],note:"Uses a 4.3 GPA scale."},
-  {province:"Nova Scotia",university:"Saint Mary's University",scale:"4.3",credits:["3"],note:"Uses a 4.3 GPA scale."},
-
-  {province:"Newfoundland and Labrador",university:"Memorial University",scale:"percentage",credits:["3"],note:"Uses a percentage grading system."},
-
-  {province:"New Brunswick",university:"University of New Brunswick",scale:"4.3",credits:["3"],note:"Uses a 4.3 GPA scale."},
-  {province:"New Brunswick",university:"St. Thomas University",scale:"4.3",credits:["3"],note:"Uses a 4.3 GPA scale."},
-
-  {province:"Prince Edward Island",university:"University of Prince Edward Island",scale:"4.3",credits:["3"],note:"Uses a 4.3 GPA scale."}
+// University Data
+const universities = [
+  {university:"University of Toronto", scale:"4.0", credits:0.5},
+  {university:"University of Ottawa", scale:"10-point", credits:3},
+  {university:"Western University", scale:"4.0", credits:0.5},
+  {university:"Queen's University", scale:"4.3", credits:3.0},
+  {university:"University of Waterloo", scale:"4.0", credits:0.5},
+  {university:"York University", scale:"9-point", credits:3.0},
+  {university:"McMaster University", scale:"12", credits:3.0},
+  {university:"Carleton University", scale:"12", credits:0.5},
+  {university:"Ryerson University", scale:"4.33", credits:1.0},
+  {university:"University of Guelph", scale:"4.0", credits:0.5},
+  {university:"University of British Columbia", scale:"4.33", credits:3},
+  {university:"Simon Fraser University", scale:"4.33", credits:3},
+  {university:"University of Victoria", scale:"9-point", credits:1.5},
+  {university:"University of Alberta", scale:"4.0", credits:3},
+  {university:"University of Calgary", scale:"4.0", credits:3},
+  {university:"University of Lethbridge", scale:"4.0", credits:3.0},
+  {university:"McGill University", scale:"4.0", credits:3},
+  {university:"Université de Montréal", scale:"4.3", credits:3},
+  {university:"Concordia University", scale:"4.3", credits:3},
+  {university:"Université Laval", scale:"4.33", credits:3},
+  {university:"Université de Sherbrooke", scale:"4.3", credits:3},
+  {university:"University of Manitoba", scale:"4.5", credits:3},
+  {university:"University of Winnipeg", scale:"4.5", credits:3},
+  {university:"University of Saskatchewan", scale:"percentage", credits:3},
+  {university:"University of Regina", scale:"percentage", credits:3},
+  {university:"Dalhousie University", scale:"4.3", credits:3},
+  {university:"Saint Mary's University", scale:"4.3", credits:3},
+  {university:"Memorial University", scale:"percentage", credits:3},
+  {university:"University of New Brunswick", scale:"4.3", credits:3},
+  {university:"St. Thomas University", scale:"4.3", credits:3},
+  {university:"University of Prince Edward Island", scale:"4.3", credits:3}
 ];
 
-// GradeBook variables and logic
+// ---------------------------
+// GradeBook Logic
+// ---------------------------
 let courses = JSON.parse(localStorage.getItem('courses')) || [];
 let selectedCourseIndex = null;
 
-// GPA Calculator variables and logic
-let gpaCourses = JSON.parse(localStorage.getItem('gpaCourses')) || [];
-let selectedUni = null;
-let selectedCredits = null;
-
-// DOM Elements
 const courseContainer = document.getElementById('course-container');
 const addCourseCard = document.getElementById('add-course-card');
 const fab = document.getElementById('fab');
@@ -535,81 +511,6 @@ const desiredGradeInput = document.getElementById('desired-grade');
 const calcFinalNeedsBtn = document.getElementById('calc-final-needs');
 const finalNeededResult = document.getElementById('final-needed-result');
 
-const gpaView = document.getElementById('gpa-view');
-const gpaCoursesBody = document.getElementById('gpa-courses-body');
-const addGpaCourseBtn = document.getElementById('add-gpa-course-btn');
-const calcCgpaBtn = document.getElementById('calc-cgpa-btn');
-const cgpaResult = document.getElementById('cgpa-result');
-const finalScaleSelect = document.getElementById('final-scale');
-const gradebookNav = document.getElementById('gradebook-nav');
-const gpaNav = document.getElementById('gpa-nav');
-const mainView = document.getElementById('main-view');
-
-const uniSelect = document.getElementById('uni-select');
-const creditSelect = document.getElementById('credit-select');
-const uniNote = document.getElementById('uni-note');
-
-// Populate uniSelect from universityData
-universityData.forEach(u=>{
-  const op = document.createElement('option');
-  op.value = u.university;
-  op.textContent = `${u.university} (${u.province})`;
-  uniSelect.appendChild(op);
-});
-
-uniSelect.addEventListener('change', () => {
-  const val = uniSelect.value;
-  selectedUni = universityData.find(x=> x.university===val) || null;
-  if(selectedUni) {
-    // Populate creditSelect
-    creditSelect.innerHTML = '';
-    selectedUni.credits.forEach(c=>{
-      const op = document.createElement('option');
-      op.value = c;
-      op.textContent = c;
-      creditSelect.appendChild(op);
-    });
-    creditSelect.classList.remove('hidden');
-    selectedCredits = selectedUni.credits[0];
-
-    // Show note if available
-    if(selectedUni.note) {
-      uniNote.textContent = selectedUni.note;
-      uniNote.classList.remove('hidden');
-    } else {
-      uniNote.classList.add('hidden');
-    }
-  } else {
-    creditSelect.innerHTML = '';
-    selectedCredits = null;
-    uniNote.classList.add('hidden');
-  }
-});
-
-creditSelect.addEventListener('change',()=>{
-  selectedCredits = creditSelect.value;
-});
-
-// Navigation
-gradebookNav.addEventListener('click', (e) => {
-  e.preventDefault();
-  gradebookNav.classList.add('active');
-  gpaNav.classList.remove('active');
-  mainView.classList.remove('hidden');
-  courseDetails.classList.add('hidden');
-  gpaView.classList.add('hidden');
-});
-
-gpaNav.addEventListener('click', (e) => {
-  e.preventDefault();
-  gpaNav.classList.add('active');
-  gradebookNav.classList.remove('active');
-  mainView.classList.add('hidden');
-  courseDetails.classList.add('hidden');
-  gpaView.classList.remove('hidden');
-});
-
-// Functions
 function saveCourses() {
   localStorage.setItem('courses', JSON.stringify(courses));
 }
@@ -628,8 +529,8 @@ function renderCourses() {
 function showCourseDetails(index) {
   selectedCourseIndex = index;
   const course = courses[index];
-  mainView.classList.add('hidden');
-  gpaView.classList.add('hidden');
+  document.getElementById('main-view').classList.add('hidden');
+  document.getElementById('gpa-view').classList.add('hidden');
   courseDetails.classList.remove('hidden');
   courseNameTitle.textContent = course.name;
   renderGradeComponents();
@@ -702,15 +603,45 @@ function calculateNeededFinalScore() {
   const neededScore = neededFraction * finalExam.outOf;
 
   if (neededScore > finalExam.outOf) {
-    finalNeededResult.textContent = `You would need more than ${finalExam.outOf} out of ${finalExam.outOf}.`;
+    finalNeededResult.textContent = `You would need more than ${finalExam.outOf} out of ${finalExam.outOf}, which is not possible.`;
   } else if (neededScore < 0) {
     finalNeededResult.textContent = "You have already secured this grade or above without the final.";
   } else {
-    finalNeededResult.textContent = `You need ${neededScore.toFixed(2)} out of ${finalExam.outOf} on the final.`;
+    finalNeededResult.textContent = `You need ${neededScore.toFixed(2)} out of ${finalExam.outOf} on the final to achieve ${desired}% in the course.`;
   }
 }
 
-// GPA functions
+// ---------------------------
+// GPA Calculator Logic
+// ---------------------------
+let gpaCourses = JSON.parse(localStorage.getItem('gpaCourses')) || [];
+let selectedUniversity = null;
+
+const gpaView = document.getElementById('gpa-view');
+const gpaCoursesBody = document.getElementById('gpa-courses-body');
+const addGpaCourseBtn = document.getElementById('add-gpa-course-btn');
+const calcCgpaBtn = document.getElementById('calc-cgpa-btn');
+const cgpaResult = document.getElementById('cgpa-result');
+const finalScaleSelect = document.getElementById('final-scale');
+
+const gradebookNav = document.getElementById('gradebook-nav');
+const gpaNav = document.getElementById('gpa-nav');
+const mainView = document.getElementById('main-view');
+
+const uniSelect = document.getElementById('uni-select');
+
+// Populate uniSelect
+universities.forEach(u=>{
+  const op = document.createElement('option');
+  op.value = u.university;
+  op.textContent = u.university;
+  uniSelect.appendChild(op);
+});
+
+uniSelect.addEventListener('change', () => {
+  selectedUniversity = universities.find(u=>u.university===uniSelect.value) || null;
+});
+
 function saveGpaCourses() {
   localStorage.setItem('gpaCourses', JSON.stringify(gpaCourses));
 }
@@ -759,51 +690,242 @@ function renderGpaCourses() {
 }
 
 function addGpaCourseRow() {
-  if (!selectedUni) {
+  if (!selectedUniversity) {
     alert("Please select a university first.");
     return;
   }
-  if (!selectedCredits) {
-    alert("Please select credits per course.");
-    return;
-  }
-  gpaCourses.push({type:selectedUni.scale, grade:'', credits:parseFloat(selectedCredits)});
+  gpaCourses.push({type:selectedUniversity.scale, grade:'', credits:selectedUniversity.credits});
   saveGpaCourses();
   renderGpaCourses();
 }
 
 function duplicateCourse(i) {
-  if (!selectedUni || !selectedCredits) {
-    alert("Please select a university and credits first.");
+  if (!selectedUniversity) {
+    alert("Please select a university first.");
     return;
   }
   const original = gpaCourses[i];
-  gpaCourses.push({type:selectedUni.scale, grade:original.grade, credits:parseFloat(selectedCredits)});
+  // Duplicate keeping the same grade, but use current university scale and credits
+  gpaCourses.push({type:selectedUniversity.scale, grade:original.grade, credits:selectedUniversity.credits});
   saveGpaCourses();
   renderGpaCourses();
 }
 
-// Conversion functions and CGPA calculation (same as before, no changes to logic)
+// Conversion functions (same as previous)
+function percentageToLetter(percentage) {
+  if (percentage >= 90) return 'A+';
+  else if (percentage >= 85) return 'A';
+  else if (percentage >= 80) return 'A-';
+  else if (percentage >= 77) return 'B+';
+  else if (percentage >= 73) return 'B';
+  else if (percentage >= 70) return 'B-';
+  else if (percentage >= 67) return 'C+';
+  else if (percentage >= 63) return 'C';
+  else if (percentage >= 60) return 'C-';
+  else if (percentage >= 57) return 'D+';
+  else if (percentage >= 53) return 'D';
+  else if (percentage >= 50) return 'D-';
+  return 'F';
+}
 
-// ... (Conversion functions are the same as in previous code) ...
+function letterTo4Point(letter) {
+  switch (letter) {
+    case 'A+': case 'A': return 4.0;
+    case 'A-': return 3.7;
+    case 'B+': return 3.3;
+    case 'B': return 3.0;
+    case 'B-': return 2.7;
+    case 'C+': return 2.3;
+    case 'C': return 2.0;
+    case 'C-': return 1.7;
+    case 'D+': return 1.3;
+    case 'D': return 1.0;
+    case 'D-': return 0.7;
+    default: return 0.0;
+  }
+}
 
-// Conversion and calculation code from previous iteration (not repeated here due to length constraints)
+function letterTo4Point3(letter) {
+  switch (letter) {
+    case 'A+': return 4.3;
+    case 'A': return 4.0;
+    case 'A-': return 3.7;
+    case 'B+': return 3.3;
+    case 'B': return 3.0;
+    case 'B-': return 2.7;
+    case 'C+': return 2.3;
+    case 'C': return 2.0;
+    case 'C-': return 1.7;
+    case 'D+': return 1.3;
+    case 'D': return 1.0;
+    case 'D-': return 0.7;
+    default: return 0.0;
+  }
+}
 
-// Implement all the scale conversion and CGPA calculation (same as previous code):
-// [The code for scale conversions, getLetterFromAnyType, convertLetterToScale, letterFromScaleValue, etc. remains identical to the previous solution, as the user only requested to follow the table strictly, not to alter logic. For brevity, they are not re-pasted here, but assume they are included as previously.]
+function letterTo4Point33(letter) {
+  return letterTo4Point3(letter)*(4.33/4.3);
+}
 
+function letterTo4_5(letter) {
+  let val4 = letterTo4Point(letter);
+  return val4 * (4.5/4.0);
+}
 
-// Include the full conversion logic here (exactly as in previous version)
-// Due to character limit, we trust the previously provided conversion logic is unchanged and used here.
+function letterTo9(letter) {
+  let val4 = letterTo4Point(letter);
+  return val4 * (9/4.0);
+}
 
+function letterTo10(letter) {
+  let val4 = letterTo4Point(letter);
+  return val4 * (10/4.0);
+}
 
-// Final CGPA calculation button event
+function letterTo12(letter) {
+  switch (letter) {
+    case 'A+': return 12;
+    case 'A': return 11;
+    case 'A-': return 10;
+    case 'B+': return 9;
+    case 'B': return 8;
+    case 'B-': return 7;
+    case 'C+': return 6;
+    case 'C': return 5;
+    case 'C-': return 4;
+    case 'D+': return 3;
+    case 'D': return 2;
+    case 'D-': return 1;
+    default: return 0;
+  }
+}
+
+function letterToMedianPerc(letter) {
+  const map = {
+    'A+':95,'A':87.5,'A-':82.5,
+    'B+':78,'B':76,'B-':72,
+    'C+':65,'C':62,'C-':58,
+    'D+':55,'D':52,'D-':50,
+    'F':45
+  };
+  return map[letter]||50;
+}
+
+function letterFromScaleValue(scale, val) {
+  const letters = ['A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','F'];
+
+  function toVal(l) {
+    if (scale==='4.0') return letterTo4Point(l);
+    if (scale==='4.3') return letterTo4Point3(l);
+    if (scale==='4.33') return letterTo4Point33(l);
+    if (scale==='4.5') return letterTo4_5(l);
+    if (scale==='9-point') return letterTo9(l);
+    if (scale==='10-point') return letterTo10(l);
+    if (scale==='12') return letterTo12(l);
+    if (scale==='percentage') return letterToMedianPerc(l);
+    return letterTo4Point(l);
+  }
+
+  let bestDiff = Infinity;
+  let closest = 'F';
+  for (let L of letters) {
+    let diff = Math.abs(toVal(L)-val);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      closest = L;
+    }
+  }
+  return closest;
+}
+
+function getLetterFromAnyType(type, value) {
+  value = value.trim();
+  if (type === 'percentage') {
+    const perc = parseFloat(value);
+    if (isNaN(perc)) return null;
+    return percentageToLetter(perc);
+  } else if (['letter'].includes(type)) {
+    return value.toUpperCase();
+  } else if (['4.0','4.3','4.33','4.5','9-point','10-point','12'].includes(type)) {
+    const val = parseFloat(value);
+    if (isNaN(val)) return null;
+    return letterFromScaleValue(type, val);
+  }
+  return null;
+}
+
+function convertLetterToScale(letter, scale) {
+  if (scale === '4.0') return letterTo4Point(letter);
+  if (scale === '4.3') return letterTo4Point3(letter);
+  if (scale === '4.33') return letterTo4Point33(letter);
+  if (scale === '4.5') return letterTo4_5(letter);
+  if (scale === '9-point') return letterTo9(letter);
+  if (scale === '10-point') return letterTo10(letter);
+  if (scale === '12') return letterTo12(letter);
+  if (scale === 'percentage') return letterToMedianPerc(letter);
+  return 0;
+}
+
+function calculateCGPA() {
+  let totalCredits = 0;
+  let totalPoints = 0;
+  const scale = finalScaleSelect.value;
+
+  for (let c of gpaCourses) {
+    const letter = getLetterFromAnyType(c.type, c.grade);
+    if (!letter) {
+      cgpaResult.textContent = "Invalid input in one of the courses.";
+      return;
+    }
+    const val = convertLetterToScale(letter, scale);
+    totalPoints += val * (c.credits || 0);
+    totalCredits += (c.credits||0);
+  }
+
+  if (totalCredits === 0) {
+    cgpaResult.textContent = "No credits entered or all credits are zero.";
+    return;
+  }
+
+  let cGPA = totalPoints / totalCredits;
+  const letter = letterFromScaleValue(scale, cGPA);
+  const cGPAon4 = convertLetterToScale(letter,'4.0');
+  const cGPAperc = letterToMedianPerc(letter);
+
+  cgpaResult.innerHTML = `Your cGPA on the ${scale} scale: ${cGPA.toFixed(2)}<br/>
+  Equivalent on 4.0 scale: ${cGPAon4.toFixed(2)}<br/>
+  Approximate percentage: ${cGPAperc}%`;
+}
+
+// Navigation
+gradebookNav.addEventListener('click', (e) => {
+  e.preventDefault();
+  gradebookNav.classList.add('active');
+  gpaNav.classList.remove('active');
+  mainView.classList.remove('hidden');
+  courseDetails.classList.add('hidden');
+  gpaView.classList.add('hidden');
+});
+
+gpaNav.addEventListener('click', (e) => {
+  e.preventDefault();
+  gpaNav.classList.add('active');
+  gradebookNav.classList.remove('active');
+  mainView.classList.add('hidden');
+  courseDetails.classList.add('hidden');
+  gpaView.classList.remove('hidden');
+});
+
+// Event Listeners for GPA
+addGpaCourseBtn.addEventListener('click', addGpaCourseRow);
 calcCgpaBtn.addEventListener('click', calculateCGPA);
 
-// Add course modal events
+// Event Listeners GradeBook
 addCourseCard.addEventListener('click', openAddCourseModal);
 fab.addEventListener('click', openAddCourseModal);
+
 closeCourseModalBtn.addEventListener('click', closeAddCourseModal);
+
 saveCourseBtn.addEventListener('click', () => {
   const name = newCourseName.value.trim();
   if (name) {
@@ -814,15 +936,16 @@ saveCourseBtn.addEventListener('click', () => {
   }
 });
 
-// Add component modal events
 backBtn.addEventListener('click', (e) => {
   e.preventDefault();
   courseDetails.classList.add('hidden');
   mainView.classList.remove('hidden');
   renderCourses();
 });
+
 addComponentBtn.addEventListener('click', openAddComponentModal);
 closeComponentModalBtn.addEventListener('click', closeAddComponentModal);
+
 saveComponentBtn.addEventListener('click', () => {
   const compName = componentNameInput.value.trim();
   const compType = componentTypeInput.value.trim();
