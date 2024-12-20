@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>My GradeBook</title>
+<style>
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #f5f5f5;
+    margin: 0;
+    padding: 20px;
+  }
+
+  h1 {
+    text-align: center;
+    margin-bottom: 40px;
+    font-weight: 700;
+    font-size: 2rem;
+  }
+
+  .course-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .course-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 30px;
+    padding: 20px;
+    min-height: 150px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+  }
+
+  .course-card h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+  }
+
+  .course-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+  }
+
+  /* Example Course Colors - you can adjust as desired */
+  .course1 {
+    background-color: #4CA4B3; /* Teal-ish */
+    color: #000;
+  }
+  .course2 {
+    background-color: #5EC5CA; /* Light aqua */
+    color: #000;
+  }
+  .course3 {
+    background-color: #617CDA; /* Blue-ish purple */
+    color: #fff;
+  }
+
+  .add-course1 {
+    background-color: #2853A3; /* Deeper Blue */
+    color: #fff;
+  }
+  .add-course2 {
+    background-color: #8C63D7; /* Purple */
+    color: #fff;
+  }
+  .add-course3 {
+    background-color: #EE8EB5; /* Pink */
+    color: #000;
+  }
+
+  /* Make sure links are styled nicely if you decide to link to course pages */
+  a.course-card {
+    text-decoration: none;
+    color: inherit;
+  }
+</style>
+</head>
+<body>
+
+<h1>My GradeBook</h1>
+<div class="course-container">
+  <!-- Existing Courses -->
+  <div class="course-card course1">
+    <h2>Course 1</h2>
+  </div>
+  <div class="course-card course2">
+    <h2>Course 2</h2>
+  </div>
+  <div class="course-card course3">
+    <h2>Course 3</h2>
+  </div>
+
+  <!-- Add New Course Cards -->
+  <div class="course-card add-course1">
+    <h2>Add New Course</h2>
+  </div>
+  <div class="course-card add-course2">
+    <h2>Add New Course</h2>
+  </div>
+  <div class="course-card add-course3">
+    <h2>Add New Course</h2>
+  </div>
+</div>
+
+</body>
+</html>
