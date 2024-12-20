@@ -51,66 +51,456 @@
     box-shadow: 0 6px 15px rgba(0,0,0,0.15);
   }
 
-  /* Example Course Colors - you can adjust as desired */
-  .course1 {
-    background-color: #4CA4B3; /* Teal-ish */
-    color: #000;
-  }
-  .course2 {
-    background-color: #5EC5CA; /* Light aqua */
-    color: #000;
-  }
-  .course3 {
-    background-color: #617CDA; /* Blue-ish purple */
+  .add-course-card {
+    background-color: #8C63D7; 
     color: #fff;
   }
 
-  .add-course1 {
-    background-color: #2853A3; /* Deeper Blue */
-    color: #fff;
+  /* Modal styling */
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right:0;
+    bottom:0;
+    background: rgba(0,0,0,0.5);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    opacity:0;
+    pointer-events:none;
+    transition: opacity 0.2s;
   }
-  .add-course2 {
-    background-color: #8C63D7; /* Purple */
-    color: #fff;
-  }
-  .add-course3 {
-    background-color: #EE8EB5; /* Pink */
-    color: #000;
+  .modal.active {
+    opacity:1;
+    pointer-events: auto;
   }
 
-  /* Make sure links are styled nicely if you decide to link to course pages */
-  a.course-card {
-    text-decoration: none;
-    color: inherit;
+  .modal-content {
+    background:#fff;
+    border-radius:10px;
+    padding:20px;
+    min-width:300px;
+    max-width:400px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.2);
+    position: relative;
+  }
+
+  .modal-content h3 {
+    margin-top:0;
+  }
+
+  .modal-content input, 
+  .modal-content select {
+    width:100%;
+    padding:10px;
+    margin-bottom:10px;
+    border:1px solid #ccc;
+    border-radius:5px;
+  }
+
+  .modal-content button {
+    margin-right:10px;
+    padding:8px 12px;
+    cursor:pointer;
+  }
+
+  #course-details {
+    max-width:800px;
+    margin:40px auto;
+    background:#fff;
+    border-radius:10px;
+    padding:20px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.1);
+  }
+
+  #course-details h2 {
+    margin-top:0;
+  }
+
+  table {
+    width:100%;
+    border-collapse: collapse;
+    margin-bottom:20px;
+  }
+
+  table th, table td {
+    text-align:left;
+    padding:8px;
+    border-bottom:1px solid #eee;
+  }
+
+  .final-grade-calc, .gpa-converter {
+    margin-top:20px;
+  }
+
+  .gpa-converter input {
+    width:auto;
+    display:inline-block;
+    margin-right:10px;
+  }
+
+  .back-btn {
+    display:inline-block;
+    margin-bottom:20px;
+    cursor:pointer;
+    color:#2853A3;
+    text-decoration:underline;
+  }
+
+  .hidden {
+    display:none;
   }
 </style>
 </head>
 <body>
+  <h1>My GradeBook</h1>
 
-<h1>My GradeBook</h1>
-<div class="course-container">
-  <!-- Existing Courses -->
-  <div class="course-card course1">
-    <h2>Course 1</h2>
-  </div>
-  <div class="course-card course2">
-    <h2>Course 2</h2>
-  </div>
-  <div class="course-card course3">
-    <h2>Course 3</h2>
+  <div id="main-view">
+    <div class="course-container" id="course-container">
+      <!-- Courses will be rendered here -->
+    </div>
+    <div class="course-container">
+      <div class="course-card add-course-card" id="add-course-btn">
+        <h2>Add New Course</h2>
+      </div>
+    </div>
   </div>
 
-  <!-- Add New Course Cards -->
-  <div class="course-card add-course1">
-    <h2>Add New Course</h2>
-  </div>
-  <div class="course-card add-course2">
-    <h2>Add New Course</h2>
-  </div>
-  <div class="course-card add-course3">
-    <h2>Add New Course</h2>
-  </div>
-</div>
+  <div id="course-details" class="hidden">
+    <span class="back-btn" id="back-btn">&larr; Back to Courses</span>
+    <h2 id="course-name-title"></h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th><th>Type</th><th>Score</th><th>Out Of</th><th>Weight (%)</th><th>Contribution</th>
+        </tr>
+      </thead>
+      <tbody id="grade-components-body"></tbody>
+    </table>
+    <button id="add-component-btn">Add Component</button>
 
+    <div class="final-grade-calc">
+      <h3>Final Grade Requirement</h3>
+      <label for="desired-grade">Desired Final Grade (%)</label>
+      <input type="number" id="desired-grade" placeholder="e.g. 90">
+      <button id="calc-final-needs">Calculate Needed Final</button>
+      <div id="final-needed-result"></div>
+    </div>
+
+    <div class="gpa-converter">
+      <h3>GPA Converter</h3>
+      <p>Enter your current percentage and see equivalent grades:</p>
+      <input type="number" id="percentage-input" placeholder="e.g. 87">
+      <button id="gpa-convert-btn">Convert</button>
+      <div id="conversion-results"></div>
+    </div>
+  </div>
+
+  <!-- Add Course Modal -->
+  <div class="modal" id="add-course-modal">
+    <div class="modal-content">
+      <h3>Add Course</h3>
+      <input type="text" id="new-course-name" placeholder="Course Name"/>
+      <button id="save-course">Save</button>
+      <button id="close-course-modal">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Add Component Modal -->
+  <div class="modal" id="add-component-modal">
+    <div class="modal-content">
+      <h3>Add Component</h3>
+      <input type="text" id="component-name" placeholder="Component Name (e.g. Quiz 1)"/>
+      <input type="text" id="component-type" placeholder="Type (Quiz, Assignment, Exam)"/>
+      <input type="number" id="component-score" placeholder="Score Earned"/>
+      <input type="number" id="component-outof" placeholder="Out Of"/>
+      <input type="number" id="component-weight" placeholder="Weight (%)"/>
+      <button id="save-component">Save</button>
+      <button id="close-component-modal">Cancel</button>
+    </div>
+  </div>
+
+<script>
+let courses = JSON.parse(localStorage.getItem('courses')) || [];
+let selectedCourseIndex = null;
+
+const courseContainer = document.getElementById('course-container');
+const addCourseBtn = document.getElementById('add-course-btn');
+const addCourseModal = document.getElementById('add-course-modal');
+const closeCourseModalBtn = document.getElementById('close-course-modal');
+const saveCourseBtn = document.getElementById('save-course');
+const newCourseName = document.getElementById('new-course-name');
+
+const courseDetails = document.getElementById('course-details');
+const courseNameTitle = document.getElementById('course-name-title');
+const gradeComponentsBody = document.getElementById('grade-components-body');
+const backBtn = document.getElementById('back-btn');
+const addComponentBtn = document.getElementById('add-component-btn');
+
+const addComponentModal = document.getElementById('add-component-modal');
+const closeComponentModalBtn = document.getElementById('close-component-modal');
+const saveComponentBtn = document.getElementById('save-component');
+const componentNameInput = document.getElementById('component-name');
+const componentTypeInput = document.getElementById('component-type');
+const componentScoreInput = document.getElementById('component-score');
+const componentOutOfInput = document.getElementById('component-outof');
+const componentWeightInput = document.getElementById('component-weight');
+
+const desiredGradeInput = document.getElementById('desired-grade');
+const calcFinalNeedsBtn = document.getElementById('calc-final-needs');
+const finalNeededResult = document.getElementById('final-needed-result');
+
+const percentageInput = document.getElementById('percentage-input');
+const gpaConvertBtn = document.getElementById('gpa-convert-btn');
+const conversionResults = document.getElementById('conversion-results');
+
+function saveCourses() {
+  localStorage.setItem('courses', JSON.stringify(courses));
+}
+
+function renderCourses() {
+  courseContainer.innerHTML = '';
+  courses.forEach((course, index) => {
+    const div = document.createElement('div');
+    div.className = 'course-card';
+    // Assign a color dynamically or just use a default palette:
+    const colors = ['#4CA4B3','#5EC5CA','#617CDA','#2853A3','#8C63D7','#EE8EB5'];
+    const color = colors[index % colors.length];
+    div.style.backgroundColor = color;
+    div.style.color = (color === '#617CDA' || color === '#2853A3' || color === '#8C63D7') ? '#fff' : '#000';
+    div.innerHTML = `<h2>${course.name}</h2>`;
+    div.addEventListener('click', () => showCourseDetails(index));
+    courseContainer.appendChild(div);
+  });
+}
+
+function showCourseDetails(index) {
+  selectedCourseIndex = index;
+  const course = courses[index];
+  document.getElementById('main-view').classList.add('hidden');
+  courseDetails.classList.remove('hidden');
+  courseNameTitle.textContent = course.name;
+  renderGradeComponents();
+}
+
+function renderGradeComponents() {
+  const course = courses[selectedCourseIndex];
+  gradeComponentsBody.innerHTML = course.gradeComponents.map(c => {
+    const contribution = ((c.score / c.outOf) * c.weight).toFixed(2);
+    return `<tr>
+      <td>${c.name}</td>
+      <td>${c.type}</td>
+      <td>${c.score}</td>
+      <td>${c.outOf}</td>
+      <td>${c.weight}</td>
+      <td>${contribution}%</td>
+    </tr>`;
+  }).join('');
+}
+
+function openAddCourseModal() {
+  addCourseModal.classList.add('active');
+  newCourseName.value = '';
+}
+
+function closeAddCourseModal() {
+  addCourseModal.classList.remove('active');
+}
+
+function openAddComponentModal() {
+  addComponentModal.classList.add('active');
+  componentNameInput.value = '';
+  componentTypeInput.value = '';
+  componentScoreInput.value = '';
+  componentOutOfInput.value = '';
+  componentWeightInput.value = '';
+}
+
+function closeAddComponentModal() {
+  addComponentModal.classList.remove('active');
+}
+
+function calculateNeededFinalScore() {
+  const desired = parseFloat(desiredGradeInput.value);
+  if (isNaN(desired)) {
+    finalNeededResult.textContent = "Please enter a valid desired grade.";
+    return;
+  }
+
+  const course = courses[selectedCourseIndex];
+  // Identify if there's a final exam component not graded yet:
+  // If not found, assume the user will add it or mention no final found.
+  
+  const finalComponents = course.gradeComponents.filter(c => c.type.toLowerCase().includes('final'));
+  if (finalComponents.length === 0) {
+    finalNeededResult.textContent = "No final component found. Please add a final exam/component.";
+    return;
+  }
+
+  // Let's assume the last 'final' component is the actual final exam.
+  const finalExam = finalComponents[finalComponents.length - 1];
+
+  // Calculate current weighted grade (excluding final if it's not graded)
+  let currentWeightedGrade = 0;
+  let currentWeightSum = 0;
+  course.gradeComponents.forEach(c => {
+    if (c.score && !(c === finalExam)) {
+      currentWeightedGrade += (c.score / c.outOf) * c.weight;
+      currentWeightSum += c.weight;
+    }
+  });
+
+  const finalWeight = finalExam.weight;
+  const totalWeight = 100;
+
+  // desired * totalWeight = currentWeightedGrade + (finalExamScore/outOf * finalWeight)
+  // finalExamScore = ((desired * totalWeight - currentWeightedGrade) / finalWeight) * finalExam.outOf
+  const neededFraction = (desired * totalWeight - currentWeightedGrade) / finalWeight;
+  const neededScore = neededFraction * finalExam.outOf;
+
+  if (neededScore > finalExam.outOf) {
+    finalNeededResult.textContent = `You would need more than ${finalExam.outOf} out of ${finalExam.outOf}, which is not possible.`;
+  } else if (neededScore < 0) {
+    finalNeededResult.textContent = "You have already secured this grade or above without the final.";
+  } else {
+    finalNeededResult.textContent = `You need ${neededScore.toFixed(2)} out of ${finalExam.outOf} on the final to achieve ${desired}% in the course.`;
+  }
+}
+
+function percentageToLetter(percentage) {
+  if (percentage >= 90) return 'A+';
+  else if (percentage >= 85) return 'A';
+  else if (percentage >= 80) return 'A-';
+  else if (percentage >= 77) return 'B+';
+  else if (percentage >= 73) return 'B';
+  else if (percentage >= 70) return 'B-';
+  else if (percentage >= 67) return 'C+';
+  else if (percentage >= 63) return 'C';
+  else if (percentage >= 60) return 'C-';
+  else if (percentage >= 57) return 'D+';
+  else if (percentage >= 53) return 'D';
+  else if (percentage >= 50) return 'D-';
+  return 'F';
+}
+
+function letterToFourPointScale(letter) {
+  switch (letter) {
+    case 'A+': case 'A': return 4.0;
+    case 'A-': return 3.7;
+    case 'B+': return 3.3;
+    case 'B': return 3.0;
+    case 'B-': return 2.7;
+    case 'C+': return 2.3;
+    case 'C': return 2.0;
+    case 'C-': return 1.7;
+    case 'D+': return 1.3;
+    case 'D': return 1.0;
+    case 'D-': return 0.7;
+    default: return 0.0;
+  }
+}
+
+function letterToFourPointThreeScale(letter) {
+  switch (letter) {
+    case 'A+': return 4.3;
+    case 'A': return 4.0;
+    case 'A-': return 3.7;
+    case 'B+': return 3.3;
+    case 'B': return 3.0;
+    case 'B-': return 2.7;
+    case 'C+': return 2.3;
+    case 'C': return 2.0;
+    case 'C-': return 1.7;
+    case 'D+': return 1.3;
+    case 'D': return 1.0;
+    case 'D-': return 0.7;
+    default: return 0.0;
+  }
+}
+
+function letterToTwelveScale(letter) {
+  // Example: McMaster scale approximation
+  switch (letter) {
+    case 'A+': return 12;
+    case 'A': return 11;
+    case 'A-': return 10;
+    case 'B+': return 9;
+    case 'B': return 8;
+    case 'B-': return 7;
+    case 'C+': return 6;
+    case 'C': return 5;
+    case 'C-': return 4;
+    case 'D+': return 3;
+    case 'D': return 2;
+    case 'D-': return 1;
+    default: return 0;
+  }
+}
+
+// Event Listeners
+addCourseBtn.addEventListener('click', openAddCourseModal);
+closeCourseModalBtn.addEventListener('click', closeAddCourseModal);
+
+saveCourseBtn.addEventListener('click', () => {
+  const name = newCourseName.value.trim();
+  if (name) {
+    courses.push({ name, gradeComponents: [] });
+    saveCourses();
+    closeAddCourseModal();
+    renderCourses();
+  }
+});
+
+backBtn.addEventListener('click', () => {
+  courseDetails.classList.add('hidden');
+  document.getElementById('main-view').classList.remove('hidden');
+  renderCourses();
+});
+
+addComponentBtn.addEventListener('click', openAddComponentModal);
+closeComponentModalBtn.addEventListener('click', closeAddComponentModal);
+
+saveComponentBtn.addEventListener('click', () => {
+  const compName = componentNameInput.value.trim();
+  const compType = componentTypeInput.value.trim();
+  const compScore = parseFloat(componentScoreInput.value);
+  const compOutOf = parseFloat(componentOutOfInput.value);
+  const compWeight = parseFloat(componentWeightInput.value);
+
+  if (compName && compType && !isNaN(compScore) && !isNaN(compOutOf) && !isNaN(compWeight)) {
+    courses[selectedCourseIndex].gradeComponents.push({
+      name: compName, type: compType, score: compScore, outOf: compOutOf, weight: compWeight
+    });
+    saveCourses();
+    closeAddComponentModal();
+    renderGradeComponents();
+  }
+});
+
+calcFinalNeedsBtn.addEventListener('click', calculateNeededFinalScore);
+
+gpaConvertBtn.addEventListener('click', () => {
+  const perc = parseFloat(percentageInput.value);
+  if (isNaN(perc)) {
+    conversionResults.textContent = "Please enter a valid percentage.";
+    return;
+  }
+  const letter = percentageToLetter(perc);
+  const fourPoint = letterToFourPointScale(letter);
+  const fourPointThree = letterToFourPointThreeScale(letter);
+  const twelve = letterToTwelveScale(letter);
+
+  conversionResults.innerHTML = `
+    <p>Letter Grade: ${letter}</p>
+    <p>4.0 Scale: ${fourPoint}</p>
+    <p>4.3 Scale (Queen's): ${fourPointThree}</p>
+    <p>12 Point Scale (McMaster): ${twelve}</p>
+  `;
+});
+
+// Initial Render
+renderCourses();
+</script>
 </body>
 </html>
